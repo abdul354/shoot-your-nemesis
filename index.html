@@ -1,0 +1,151 @@
+<!doctype html>
+<html lang="en">
+
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Shooting Range - Ultimate Edition</title>
+  <link rel="stylesheet" href="style.css">
+  <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700&display=swap" rel="stylesheet">
+</head>
+
+<body>
+  <div id="container"></div>
+
+  <div id="goalDisplay">GOAL: <span id="goalScoreValue">0</span></div>
+
+  <div id="setupScreen">
+    <div id="setupBox">
+      <h2>🎯 Shooting Range</h2>
+      <p>Upload your monster image (PNG/JPG) to use as targets!</p>
+
+      <div style="margin-bottom:12px;">
+        <label for="playerName" style="display:block;margin-bottom:6px;color:#444;font-weight:bold;">Player Name</label>
+        <input id="playerName" type="text" placeholder="Enter name"
+          style="padding:8px 10px;border-radius:6px;border:1px solid #ccc;width:100%;max-width:320px;" />
+      </div>
+      <div id="nameError" style="color:#ff4444;font-size:0.9rem;display:none;margin-bottom:10px;font-weight:bold;">
+        ⚠️ Please enter your name to play!
+      </div>
+
+      <div id="defaultMonsters">
+        <p style="margin-bottom:10px;font-weight:bold;color:#444;">Choose a Target:</p>
+        <div class="monster-grid">
+          <div class="monster-option" data-src="SastiKhusri.jpg">
+            <img src="SastiKhusri.jpg" alt="SastiKhusri">
+            <span>Sasti Khusri</span>
+          </div>
+          <div class="monster-option placeholder" data-src="">
+            <div class="placeholder-box">?</div>
+            <span>Coming Soon</span>
+          </div>
+          <div class="monster-option placeholder" data-src="">
+            <div class="placeholder-box">?</div>
+            <span>Coming Soon</span>
+          </div>
+          <div class="monster-option placeholder" data-src="">
+            <div class="placeholder-box">?</div>
+            <span>Coming Soon</span>
+          </div>
+          <div class="monster-option placeholder" data-src="">
+            <div class="placeholder-box">?</div>
+            <span>Coming Soon</span>
+          </div>
+        </div>
+        <p style="margin:10px 0;color:#666;">- OR -</p>
+      </div>
+
+      <input type="file" id="fileInput" accept="image/png,image/jpeg,image/jpg" />
+      <button id="uploadBtn">Choose Image</button>
+      <div id="preview"></div>
+
+      <div class="difficulty-select" id="difficultySelect">
+        <h3>Select Difficulty:</h3>
+        <button class="difficulty-btn" data-diff="easy">Easy</button>
+        <button class="difficulty-btn active" data-diff="normal">Normal</button>
+        <button class="difficulty-btn" data-diff="hard">Hard</button>
+      </div>
+
+      <button id="startBtn">Start Shooting!</button>
+
+      <div style="margin-top:18px;color:#222;">
+        <div style="font-weight:bold;margin-bottom:8px;">Top Scores</div>
+        <div id="leaderboardSetup" class="leaderboard"></div>
+        <div style="margin-top:8px;">
+          <button id="clearLeaderboardBtn" class="small-btn">Clear Leaderboard</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div id="overlay">
+    <div>Click to start — Move mouse to aim, Left-click to shoot</div>
+    <div style="font-size:1.2rem;margin-top:20px;">Press ESC to pause • Press R to reload</div>
+  </div>
+
+  <div id="hud">
+    <div class="hud-row"><span class="hud-label">Time:</span><span class="hud-value" id="timer">60s</span></div>
+    <div class="hud-row"><span class="hud-label">Misses:</span><span class="hud-value" id="misses">0 / 5</span></div>
+    <div class="hud-row"><span class="hud-label">Bonus:</span><span class="hud-value" id="powerup">None</span></div>
+    <div class="hud-row"><span class="hud-label">Player:</span><span class="hud-value" id="hudPlayer">Player</span>
+    </div>
+    <div class="hud-row"><span class="hud-label">Gun:</span><span class="hud-value" id="currentGun">Pistol</span></div>
+    <div class="hud-row"><span class="hud-label">Score:</span><span class="hud-value" id="score">0</span></div>
+    <div class="hud-row"><span class="hud-label">Ammo:</span><span class="hud-value" id="ammo">12/12</span></div>
+    <div class="hud-row"><span class="hud-label">Accuracy:</span><span class="hud-value" id="accuracy">0%</span></div>
+    <div class="hud-row"><span class="hud-label">Combo:</span><span class="hud-value" id="combo">x1</span></div>
+  </div>
+
+  <div id="gunSelect">
+    <button class="gun-btn active" data-gun="pistol">
+      <span class="gun-name">🔫 Pistol</span>
+      <span class="gun-stats">12 rounds • Low recoil</span>
+    </button>
+    <button class="gun-btn" data-gun="rifle">
+      <span class="gun-name">🎯 Rifle</span>
+      <span class="gun-stats">30 rounds • Medium recoil</span>
+    </button>
+    <button class="gun-btn" data-gun="shotgun">
+      <span class="gun-name">💥 Shotgun</span>
+      <span class="gun-stats">8 rounds • High recoil</span>
+    </button>
+    <button class="gun-btn" data-gun="sniper">
+      <span class="gun-name">🎖️ Sniper</span>
+      <span class="gun-stats">5 rounds • Very high recoil</span>
+    </button>
+  </div>
+
+  <div id="pauseMenu">
+    <h2>⏸ PAUSED</h2>
+    <button class="menu-btn" id="resumeBtn">Resume</button>
+    <button class="menu-btn" id="quitBtn">Quit to Menu</button>
+  </div>
+
+  <div id="gameOver">
+    <h2 id="gameOverTitle">GAME OVER!</h2>
+    <div class="stats">
+      <div class="stat-item">Final Score: <span id="finalScore">0</span></div>
+      <div class="stat-item">Accuracy: <span id="finalAccuracy">0%</span></div>
+      <div class="stat-item">Targets Hit: <span id="targetsHit">0</span></div>
+      <div class="stat-item">Best Combo: <span id="bestCombo">x1</span></div>
+      <div class="stat-item">High Score: <span id="highScore">0</span></div>
+    </div>
+
+    <div style="width:420px;max-width:90%;">
+      <div style="font-weight:bold;margin-bottom:8px;text-align:left;">Leaderboard</div>
+      <div id="leaderboard" class="leaderboard"></div>
+      <div style="text-align:center;margin-top:12px;">
+        <button id="restartBtn">Play Again</button>
+      </div>
+    </div>
+  </div>
+
+  <div id="crosshair">
+    <div></div>
+  </div>
+
+  <script type="module" src="js/Main.js"></script>
+
+</body>
+
+</html>
