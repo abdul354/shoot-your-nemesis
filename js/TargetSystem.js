@@ -1,6 +1,6 @@
-import * as THREE from 'https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js';
+import * as THREE from 'three';
 import { state } from './GameState.js';
-import { difficultySettings } from './Config.js';
+
 import { updateHUD } from './HUD.js';
 
 export let targets = [];
@@ -18,7 +18,7 @@ export function destroyTarget(target, scene, endGameCallback) {
     if (idx >= 0) targets.splice(idx, 1);
 
     // Spawn a new one
-    setTimeout(() => spawnTarget(scene, endGameCallback), difficultySettings[state.difficulty].spawnDelay);
+    setTimeout(() => spawnTarget(scene, endGameCallback), 800); // Fixed spawn delay
 }
 
 export function createParticles(position, scene) {
@@ -57,7 +57,7 @@ export function spawnTarget(scene, endGameCallback) {
         color: 0xffffff // Start with white tint
     });
     const sprite = new THREE.Sprite(spriteMat);
-    const size = difficultySettings[state.difficulty].targetSize;
+    const size = 1.2; // Fixed target size
 
     // --- NEW TARGET TYPE LOGIC ---
     const rand = Math.random();
@@ -94,9 +94,9 @@ export function spawnTarget(scene, endGameCallback) {
     const z = -8 - Math.random() * 4; // Start closer to camera
     sprite.position.set(x, y, z);
 
-    // Set speeds based on difficulty and if slow-mo is active
-    const baseSideSpeed = difficultySettings[state.difficulty].moveSpeed;
-    const baseForwardSpeed = difficultySettings[state.difficulty].forwardSpeed;
+    // Set speeds based on if slow-mo is active
+    const baseSideSpeed = 0.008; // Fixed side speed
+    const baseForwardSpeed = 0.012; // Fixed forward speed
 
     sprite.userData.originalSideSpeed = baseSideSpeed;
     sprite.userData.originalForwardSpeed = baseForwardSpeed;

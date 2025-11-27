@@ -5,26 +5,13 @@ export const state = {
     ammo: 12,
     totalShots: 0,
     totalHits: 0,
-    combo: 1,
-    bestCombo: 1,
-    difficulty: 'normal',
-    gameTime: 60,
-    isPaused: false,
-    isGameOver: false,
-    highScore: 0,
-    totalMisses: 0,
-    maxMisses: 7,
-
-    // Powerup states
-    isSlowMo: false,
-    isInfiniteAmmo: false,
     isDoublePoints: false,
 
     // Player
     playerName: 'Player',
 
     // Gun system state
-    currentGun: 'pistol',
+    currentGun: 'rifle',
     canShoot: true,
     isReloading: false,
     isZoomed: false,

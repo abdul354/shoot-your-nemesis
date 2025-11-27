@@ -1,0 +1,73 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <title>Model Test</title>
+    <style>
+        body {
+            margin: 0;
+            background: #333;
+            color: white;
+            font-family: sans-serif;
+        }
+    </style>
+    <script type="importmap">
+    {
+        "imports": {
+            "three": "https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js",
+            "three/addons/": "https://cdn.jsdelivr.net/npm/three@0.160.0/examples/jsm/"
+        }
+    }
+    </script>
+</head>
+
+<body>
+    <div id="info" style="position: absolute; top: 10px; left: 10px;">Loading...</div>
+    <script type="module">
+        import * as THREE from 'three';
+        import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
+
+        const info = document.getElementById('info');
+        const scene = new THREE.Scene();
+        scene.background = new THREE.Color(0x333333);
+
+        const camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
+        camera.position.z = 2;
+
+        const renderer = new THREE.WebGLRenderer();
+        renderer.setSize(window.innerWidth, window.innerHeight);
+        document.body.appendChild(renderer.domElement);
+
+        const light = new THREE.DirectionalLight(0xffffff, 3);
+        light.position.set(1, 1, 1);
+        scene.add(light);
+        scene.add(new THREE.AmbientLight(0xffffff, 1));
+
+        const loader = new GLTFLoader();
+        loader.load('./ak-47.glb',
+            (gltf) => {
+                info.textContent = "SUCCESS: Model loaded!";
+                info.style.color = "#0f0";
+                scene.add(gltf.scene);
+
+                function animate() {
+                    requestAnimationFrame(animate);
+                    gltf.scene.rotation.y += 0.01;
+                    renderer.render(scene, camera);
+                }
+                animate();
+            },
+            (xhr) => {
+                info.textContent = `Loading: ${(xhr.loaded / xhr.total * 100).toFixed(0)}%`;
+            },
+            (error) => {
+                console.error(error);
+                info.textContent = "ERROR: " + error.message;
+                info.style.color = "#f00";
+            }
+        );
+    </script>
+</body>
+
+</html>

@@ -1,7 +1,7 @@
-import * as THREE from 'https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js';
+import * as THREE from 'three';
 import { initEnvironment, updateEnvironment } from './Environment.js';
 import { state, resetGameState } from './GameState.js';
-import { difficultySettings } from './Config.js';
+
 import { initAudio, playMenuMusic, playGameMusic, stopGameMusic } from './AudioSystem.js';
 import { updateHUD } from './HUD.js';
 import { initLeaderboard, savePlayerName, addScoreToLeaderboard, renderLeaderboard, getLeaderboard, saveLeaderboard } from './Leaderboard.js';
@@ -20,22 +20,11 @@ const SERVER_URL = window.location.hostname === 'localhost' || window.location.h
 
 // DOM Elements
 const container = document.getElementById('container');
-
-const setupScreen = document.getElementById('setupScreen');
 const overlay = document.getElementById('overlay');
 const crosshair = document.getElementById('crosshair');
-const fileInput = document.getElementById('fileInput');
-const uploadBtn = document.getElementById('uploadBtn');
-const startBtn = document.getElementById('startBtn');
-const preview = document.getElementById('preview');
-const difficultySelect = document.getElementById('difficultySelect');
 const pauseMenu = document.getElementById('pauseMenu');
 const gameOverScreen = document.getElementById('gameOver');
 const leaderboardGameOver = document.getElementById('leaderboard');
-const clearLeaderboardBtn = document.getElementById('clearLeaderboardBtn');
-const leaderboardSetup = document.getElementById('leaderboardSetup');
-const goalDisplay = document.getElementById('goalDisplay');
-const goalScoreValue = document.getElementById('goalScoreValue');
 
 // Three.js globals
 let scene, camera, renderer, clock, raycaster;
@@ -44,136 +33,66 @@ let gunScene, gunCamera;
 // Initialize
 initLeaderboard();
 
-// Handle default monster selection
-document.querySelectorAll('.monster-option').forEach(option => {
-    option.addEventListener('click', () => {
-        const src = option.dataset.src;
-        if (!src) return; // Ignore placeholders
+// Exported function to start the game from React
+export function startGame(playerName, targetUrl) {
+    state.playerName = playerName;
+    savePlayerName(playerName);
 
-        // Remove previous selection
-        document.querySelectorAll('.monster-option').forEach(opt => opt.classList.remove('selected'));
-        option.classList.add('selected');
+    // Set game parameters
+    state.gameTime = 60;
+    state.winningScore = 999999; // Infinite play essentially
 
-        // Load the texture
+    // Handle custom target texture
+    if (targetUrl) {
         const loader = new THREE.TextureLoader();
-        loader.load(src, (texture) => {
+        loader.load(targetUrl, (texture) => {
             state.monsterTexture = texture;
-            preview.innerHTML = `<img id="previewImg" src="${src}" alt="Monster" />`;
-            difficultySelect.style.display = 'block';
-            startBtn.style.display = 'inline-block';
+            launchGame();
+        }, undefined, (err) => {
+            console.error("Error loading target texture:", err);
+            // Fallback: Launch game anyway (texture will be null, targets might be white/colored squares)
+            launchGame();
         });
-
-        // Try to play menu music on user interaction
-        playMenuMusic();
-    });
-});
-
-// File upload
-uploadBtn.addEventListener('click', () => {
-    fileInput.click();
-    // Try to play menu music on user interaction
-    playMenuMusic();
-});
-
-fileInput.addEventListener('change', (e) => {
-    const file = e.target.files[0];
-    if (file && file.type.startsWith('image/')) {
-        const reader = new FileReader();
-        reader.onload = (event) => {
-            preview.innerHTML = `<img id="previewImg" src="${event.target.result}" alt="Monster" />`;
-            difficultySelect.style.display = 'block';
-            startBtn.style.display = 'inline-block';
-            const loader = new THREE.TextureLoader();
-            loader.load(event.target.result, (texture) => {
-                state.monsterTexture = texture;
-            });
-        };
-        reader.readAsDataURL(file);
+    } else {
+        // Default texture or handle missing texture if needed
+        launchGame();
     }
-});
+}
 
-// Difficulty selection
-document.querySelectorAll('.difficulty-btn').forEach(btn => {
-    btn.addEventListener('click', () => {
-        document.querySelectorAll('.difficulty-btn').forEach(b => b.classList.remove('active'));
-        btn.classList.add('active');
-        state.difficulty = btn.dataset.diff;
-    });
-});
+function launchGame() {
+    // Show game UI elements
+    document.getElementById('hud').style.display = 'block';
+    container.style.display = 'block'; // Fix: Unhide the game container
+    overlay.style.display = 'flex';
 
-// Gun selection UI
-document.querySelectorAll('.gun-btn').forEach(btn => {
-    btn.addEventListener('click', () => {
-        if (!state.pointerLocked || state.isPaused || state.isGameOver) {
-            switchGun(btn.dataset.gun, gunScene, camera, crosshair);
-        }
-    });
-});
-
-// Start button
-startBtn.addEventListener('click', () => {
-    if (state.monsterTexture) {
-        const nameInput = document.getElementById('playerName');
-        const nameError = document.getElementById('nameError');
-
-        if (!nameInput.value.trim()) {
-            nameError.style.display = 'block';
-            // Shake animation effect
-            nameInput.style.borderColor = '#ff4444';
-            setTimeout(() => nameInput.style.borderColor = '#ccc', 500);
-            return;
-        }
-        nameError.style.display = 'none';
-
-        savePlayerName();
-        setupScreen.style.display = 'none';
-        overlay.style.display = 'flex';
-        crosshair.style.display = 'block';
-
-        // Set game time AND max misses from the settings
-        const settings = difficultySettings[state.difficulty];
-        state.gameTime = settings.gameTime;
-        state.maxMisses = settings.maxMisses;
-        state.winningScore = settings.winningScore;
-
-        // Show Goal
-        goalScoreValue.textContent = state.winningScore;
-        goalDisplay.style.display = 'block';
-        setTimeout(() => {
-            goalDisplay.style.display = 'none';
-        }, 4000);
-
-        init();
-        playGameMusic();
-        animate();
-    }
-});
-
-// Clear leaderboard
-clearLeaderboardBtn.addEventListener('click', () => {
-    if (confirm('Clear leaderboard?')) {
-        setLeaderboard([]); // You'll need to export setLeaderboard or just clear it via empty array save
-        // Actually let's just use the exported functions if possible or modify Leaderboard.js to allow clearing
-        // For now, I'll manually clear it via localstorage and reload
-        localStorage.setItem('msr_leaderboard', '[]');
-        initLeaderboard(); // Reloads and renders
-        renderLeaderboard(leaderboardGameOver, []);
-    }
-});
+    // Initialize game
+    init();
+    playGameMusic();
+    animate();
+}
 
 // Restart button
-document.getElementById('restartBtn').addEventListener('click', () => {
-    location.reload();
-});
+const restartBtn = document.getElementById('restartBtn');
+if (restartBtn) {
+    restartBtn.addEventListener('click', () => {
+        location.reload();
+    });
+}
 
 // Pause menu
-document.getElementById('resumeBtn').addEventListener('click', () => {
-    togglePause();
-});
+const resumeBtn = document.getElementById('resumeBtn');
+if (resumeBtn) {
+    resumeBtn.addEventListener('click', () => {
+        togglePause();
+    });
+}
 
-document.getElementById('quitBtn').addEventListener('click', () => {
-    location.reload();
-});
+const quitBtn = document.getElementById('quitBtn');
+if (quitBtn) {
+    quitBtn.addEventListener('click', () => {
+        location.reload();
+    });
+}
 
 function init() {
     scene = new THREE.Scene();
@@ -223,7 +142,7 @@ function init() {
 
     // Init Input
     initInput(renderer, overlay, camera, crosshair, {
-        shoot: () => shoot(scene, camera, raycaster, endGame),
+        shoot: () => shoot(scene, camera, raycaster, endGame, () => reload(camera, crosshair)),
         reload: () => reload(camera, crosshair),
         switchGun: (type) => switchGun(type, gunScene, camera, crosshair),
         togglePause: togglePause,
@@ -312,7 +231,7 @@ function endGame(reason = 'time') { // 'time' or 'misses'
     document.getElementById('finalScore').textContent = state.score;
     document.getElementById('finalAccuracy').textContent = accuracyText;
     document.getElementById('targetsHit').textContent = state.totalHits;
-    document.getElementById('bestCombo').textContent = `x${state.bestCombo}`;
+    // document.getElementById('bestCombo').textContent = `x${state.bestCombo}`; // Element might not exist in new HTML yet
     document.getElementById('highScore').textContent = state.highScore;
 
     renderLeaderboard(leaderboardGameOver, lb);
@@ -346,6 +265,11 @@ function animate() {
     // Check for win
     if (state.score >= state.winningScore) {
         endGame('win');
+    }
+
+    // Auto-fire handling
+    if (state.isFiring && state.canShoot && !state.isReloading && !state.isPaused && !state.isGameOver) {
+        shoot(scene, camera, raycaster, endGame);
     }
 
     // Animate gun

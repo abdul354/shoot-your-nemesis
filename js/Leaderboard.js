@@ -1,25 +1,26 @@
 import { state } from './GameState.js';
 
-const playerNameInput = document.getElementById('playerName');
-const hudPlayer = document.getElementById('hudPlayer');
-const leaderboardSetup = document.getElementById('leaderboardSetup');
-const leaderboardGameOver = document.getElementById('leaderboard');
-
 let leaderboard = [];
 
 export function loadPlayerName() {
+    const playerNameInput = document.getElementById('playerName');
+    const hudPlayer = document.getElementById('hudPlayer');
     const n = localStorage.getItem('msr_playerName');
     if (n) {
         state.playerName = n;
-        playerNameInput.value = n;
-        hudPlayer.textContent = n;
+        if (playerNameInput) playerNameInput.value = n;
+        if (hudPlayer) hudPlayer.textContent = n;
     }
 }
 
 export function savePlayerName() {
-    state.playerName = playerNameInput.value.trim() || 'Player';
-    localStorage.setItem('msr_playerName', state.playerName);
-    hudPlayer.textContent = state.playerName;
+    const playerNameInput = document.getElementById('playerName');
+    const hudPlayer = document.getElementById('hudPlayer');
+    if (playerNameInput) {
+        state.playerName = playerNameInput.value.trim() || 'Player';
+        localStorage.setItem('msr_playerName', state.playerName);
+    }
+    if (hudPlayer) hudPlayer.textContent = state.playerName;
 }
 
 export function loadLeaderboard() {
@@ -45,6 +46,7 @@ export function setLeaderboard(newLeaderboard) {
 }
 
 export function renderLeaderboard(container, list) {
+    if (!container) return;
     container.innerHTML = '';
     if (!list || list.length === 0) {
         container.innerHTML = '<div style="color:#ccc;padding:6px;">No scores yet.</div>';
@@ -76,5 +78,8 @@ export function addScoreToLeaderboard(score, accuracyText, hits) {
 export function initLeaderboard() {
     loadPlayerName();
     loadLeaderboard();
-    renderLeaderboard(leaderboardSetup, leaderboard);
+    const leaderboardSetup = document.getElementById('leaderboardSetup');
+    if (leaderboardSetup) {
+        renderLeaderboard(leaderboardSetup, leaderboard);
+    }
 }

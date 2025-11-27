@@ -8,10 +8,13 @@ export function initInput(renderer, overlay, camera, crosshair, callbacks) {
         state.pointerLocked = (document.pointerLockElement === renderer.domElement);
         if (state.pointerLocked && !state.isPaused && !state.isGameOver) {
             overlay.style.display = 'none';
+            crosshair.style.display = 'block';
             document.addEventListener('mousemove', onMouseMove);
             document.addEventListener('mousedown', onMouseDown);
         } else {
+            state.isFiring = false; // Stop firing if lock lost
             if (!state.isPaused && !state.isGameOver) overlay.style.display = 'flex';
+            crosshair.style.display = 'none';
             // Force unzoom if pointer lock is lost
             if (state.isZoomed) unZoom();
             document.removeEventListener('mousemove', onMouseMove);
@@ -31,21 +34,22 @@ export function initInput(renderer, overlay, camera, crosshair, callbacks) {
         state.yaw -= mx * currentSensitivity;
         state.pitch -= my * currentSensitivity;
 
-        // Apply recoil recovery
-        state.recoilPitch *= guns[state.currentGun].recoilRecovery;
-        state.recoilYaw *= guns[state.currentGun].recoilRecovery;
+        // Recoil recovery removed
+        state.recoilPitch = 0;
+        state.recoilYaw = 0;
 
         const max = Math.PI * 0.45;
-        state.pitch = Math.max(-max, Math.min(max, state.pitch + state.recoilPitch));
-        camera.rotation.set(state.pitch, state.yaw + state.recoilYaw, 0);
+        state.pitch = Math.max(-max, Math.min(max, state.pitch));
+        camera.rotation.set(state.pitch, state.yaw, 0);
     }
 
     function onMouseDown(e) {
         if (state.isPaused || state.isGameOver) return;
 
-        // Left Click: Shoot
+        // Left Click: Shoot (Start firing)
         if (e.button === 0) {
-            shoot();
+            state.isFiring = true;
+            shoot(); // Fire immediately once
         }
         // Right Click: Zoom
         if (e.button === 2 && state.currentGun === 'sniper' && !state.isReloading && !state.isZoomed) {
@@ -54,6 +58,10 @@ export function initInput(renderer, overlay, camera, crosshair, callbacks) {
     }
 
     function onMouseUp(e) {
+        // Left Click Up: Stop firing
+        if (e.button === 0) {
+            state.isFiring = false;
+        }
         // Right Click Up: Un-zoom
         if (e.button === 2 && state.isZoomed) {
             unZoom();

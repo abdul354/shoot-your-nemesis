@@ -42,6 +42,14 @@ class CustomHandler(http.server.SimpleHTTPRequestHandler):
         else:
             self.send_error(404)
 
+    def do_GET(self):
+        if self.path == '/' or self.path == '/index.html':
+            self.send_response(302)
+            self.send_header('Location', 'http://localhost:3000')
+            self.end_headers()
+        else:
+            super().do_GET()
+
     def do_OPTIONS(self):
         self.send_response(200)
         self.send_header('Access-Control-Allow-Origin', '*')
@@ -57,13 +65,15 @@ class CustomHandler(http.server.SimpleHTTPRequestHandler):
 CustomHandler.extensions_map.update({
     ".js": "application/javascript",
     ".css": "text/css",
+    ".glb": "model/gltf-binary",
+    ".gltf": "model/gltf+json",
 })
 
 print(f"Starting server at http://localhost:{PORT}")
 print(f"Scores will be saved to {os.path.abspath(SCORE_FILE)}")
 
 with socketserver.TCPServer(("", PORT), CustomHandler) as httpd:
-    webbrowser.open(f"http://localhost:{PORT}")
+    # webbrowser.open(f"http://localhost:{PORT}")
     try:
         httpd.serve_forever()
     except KeyboardInterrupt:
