@@ -1,0 +1,120 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Shooting Range - Ultimate Edition</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;500;700;900&family=Rajdhani:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <!-- <link rel="stylesheet" href="/index.css"> -->
+    <style>
+      /* React App Styles Override/Supplement */
+      body {
+        font-family: 'Rajdhani', sans-serif;
+        background-color: #000;
+        color: #fff;
+        overflow: hidden; /* Prevent scrolling for game */
+      }
+      .font-cyber {
+        font-family: 'Orbitron', sans-serif;
+      }
+      
+      /* CRT Scanline Effect */
+      .scanlines {
+        background: linear-gradient(
+          to bottom,
+          rgba(255,255,255,0),
+          rgba(255,255,255,0) 50%,
+          rgba(0,0,0,0.2) 50%,
+          rgba(0,0,0,0.2)
+        );
+        background-size: 100% 4px;
+        position: fixed;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        pointer-events: none;
+        z-index: 50;
+      }
+      
+      /* Glowing Text */
+      .text-glow {
+        text-shadow: 0 0 5px rgba(255, 255, 255, 0.5), 0 0 10px rgba(255, 255, 255, 0.3);
+      }
+      .text-glow-blue {
+        text-shadow: 0 0 5px rgba(147, 197, 253, 0.5), 0 0 10px rgba(59, 130, 246, 0.5);
+      }
+
+      /* Custom Scrollbar for Leaderboard */
+      ::-webkit-scrollbar {
+        width: 6px;
+      }
+      ::-webkit-scrollbar-track {
+        background: #0f172a; 
+      }
+      ::-webkit-scrollbar-thumb {
+        background: #334155; 
+        border-radius: 3px;
+      }
+      ::-webkit-scrollbar-thumb:hover {
+        background: #475569; 
+      }
+    </style>
+    <script type="module" crossorigin src="/shoot-your-nemesis/assets/index-D00O0UiS.js"></script>
+    <link rel="stylesheet" crossorigin href="/shoot-your-nemesis/assets/index-DZ_kc78Z.css">
+  </head>
+  <body class="bg-black text-gray-200">
+    <div id="root"></div>
+    
+    <!-- Game Elements (Hidden initially) -->
+    <div id="container" style="display:none;"></div>
+    <div id="goalDisplay" style="display:none;">GOAL: <span id="goalScoreValue">0</span></div>
+    
+    <div id="overlay" style="display:none;">
+        <div>Click to start — Move mouse to aim, Left-click to shoot</div>
+        <div style="font-size:1.2rem;margin-top:20px;">Press ESC to pause • Press R to reload</div>
+    </div>
+    
+    <div id="hud" style="display:none;">
+        <div class="hud-row"><span class="hud-label">Time:</span><span class="hud-value" id="timer">60s</span></div>
+        <div class="hud-row"><span class="hud-label">Bonus:</span><span class="hud-value" id="powerup">None</span></div>
+        <div class="hud-row"><span class="hud-label">Player:</span><span class="hud-value" id="hudPlayer">Player</span></div>
+        <div class="hud-row"><span class="hud-label">Gun:</span><span class="hud-value" id="currentGun">AK-47</span></div>
+        <div class="hud-row"><span class="hud-label">Score:</span><span class="hud-value" id="score">0</span></div>
+        <div class="hud-row"><span class="hud-label">Ammo:</span><span class="hud-value" id="ammo">30/30</span></div>
+        <div class="hud-row"><span class="hud-label">Accuracy:</span><span class="hud-value" id="accuracy">0%</span></div>
+    </div>
+    
+    <div id="pauseMenu" style="display:none;">
+        <h2>⏸ PAUSED</h2>
+        <button class="menu-btn" id="resumeBtn">Resume</button>
+        <button class="menu-btn" id="quitBtn">Quit to Menu</button>
+    </div>
+    
+    <div id="gameOver" style="display:none;">
+        <h2 id="gameOverTitle">GAME OVER!</h2>
+        <div class="stats">
+        <div class="stat-item">Final Score: <span id="finalScore">0</span></div>
+        <div class="stat-item">Accuracy: <span id="finalAccuracy">0%</span></div>
+        <div class="stat-item">Targets Hit: <span id="targetsHit">0</span></div>
+        <div class="stat-item">High Score: <span id="highScore">0</span></div>
+        </div>
+        <div style="width:420px;max-width:90%;">
+        <div style="font-weight:bold;margin-bottom:8px;text-align:left;">Leaderboard</div>
+        <div id="leaderboard" class="leaderboard"></div>
+        <div style="text-align:center;margin-top:12px;">
+            <button id="restartBtn">Play Again</button>
+        </div>
+        </div>
+    </div>
+    
+    <div id="crosshair" style="display:none;">
+        <div></div>
+    </div>
+
+    <div class="scanlines"></div>
+  </body>
+</html>
